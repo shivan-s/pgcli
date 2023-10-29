@@ -1371,6 +1371,12 @@ class PGCli:
     default=None,
     help="Open an SSH tunnel to the given address and connect to the database from it.",
 )
+@click.option(
+    "-e",
+    "--env_file",
+    default="None",
+    help="Connect to the database using an environment variable.",
+)
 @click.argument("dbname", default=lambda: None, envvar="PGDATABASE", nargs=1)
 @click.argument("username", default=lambda: None, envvar="PGUSER", nargs=1)
 def cli(
