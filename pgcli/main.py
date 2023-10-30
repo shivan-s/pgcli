@@ -18,6 +18,7 @@ import platform
 from time import time, sleep
 from typing import Optional
 
+
 from cli_helpers.tabular_output import TabularOutputFormatter
 from cli_helpers.tabular_output.preprocessors import align_decimals, format_numbers
 from cli_helpers.utils import strip_ansi
@@ -1373,9 +1374,14 @@ class PGCli:
 )
 @click.option(
     "-e",
-    "--env_file",
-    default="None",
-    help="Connect to the database using an environment variable.",
+    "--env-variable",
+    help="Connect to the database using an specific environment variable.",
+)
+@click.option(
+    "-f",
+    "--env-file",
+    default=".env",
+    help="Provide a specific file for environment variables.",
 )
 @click.argument("dbname", default=lambda: None, envvar="PGDATABASE", nargs=1)
 @click.argument("username", default=lambda: None, envvar="PGUSER", nargs=1)
@@ -1401,6 +1407,8 @@ def cli(
     list_dsn,
     warn,
     ssh_tunnel: str,
+    env_variable: str,
+    env_file: str,
 ):
     if version:
         print("Version:", __version__)
@@ -1428,7 +1436,7 @@ def cli(
             for alias in cfg["alias_dsn"]:
                 click.secho(alias + " : " + cfg["alias_dsn"][alias])
             sys.exit(0)
-        except Exception as err:
+        except Exception:
             click.secho(
                 "Invalid DSNs found in the config file. "
                 'Please check the "[alias_dsn]" section in pgclirc.',
@@ -1445,6 +1453,13 @@ def cli(
             fg="red",
         )
         exit(1)
+
+    from dotenv import dotenv_values
+
+    if env_variable and env_file:
+        env_vars = dotenv_values(env_file)
+        DB_URL = env_vars[env_variable]
+        # TODO: use the DBURL to connect to DB
 
     pgcli = PGCli(
         prompt_passwd,
